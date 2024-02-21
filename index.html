@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" href="src/bootstrap.min.css">
+    <style>
+        .div-outer { transform: translateY(-10%); }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 10px;
+        }
+        #results-container {
+            height: 400px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 20px;
+        }
+        img {
+            max-height: 50vh;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        /* 新的样式: 设置搜索结果的布局 */
+        .result-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        /* 新的样式: 设置链接图片的样式 */
+        .link-img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <img src="src/logo.jpg" alt="Logo"
+         class="img-fluid">
+    <div class="input-group mt-3">
+        <input id="search-input" class="form-control" type="text" placeholder="音乐名称/id/链接">
+        <div class="input-group-append">
+            <button id="search-button" class="btn btn-primary" onclick="search()">搜索</button>
+        </div>
+    </div>
+    <div id="results-container" class="bg-light p-3 rounded"></div>
+</div>
+
+<script src="src/jquery.slim.min.js"></script>
+<script src="src/bootstrap.min.js"></script>
+<script>
+    async function search() {
+    var searchButton = document.getElementById('search-button');
+    searchButton.disabled = true;
+    searchButton.classList.remove('btn-primary');
+    searchButton.classList.add('btn-secondary');
+
+    const inputValue = document.getElementById('search-input').value;
+    await fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({input: inputValue})
+    })
+    .then(response => response.json())
+    .then(data => displayResults(data))
+    .catch(error => console.error(error))
+    .finally(() => {
+        searchButton.disabled = false;
+        searchButton.classList.remove('btn-secondary');
+        searchButton.classList.add('btn-primary');
+    });
+}
+
+    function displayResults(data) {
+        const resultsContainer = document.getElementById('results-container');
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '';
+        data.forEach(element => {
+            const entry = document.createElement('div');
+            entry.className = 'result-entry';
+            entry.innerHTML = `
+                <h5>${element.title} - ${element.author}</h5>
+                <a href="${element.url}"><img src="${element.imageurl}" class="link-img"></a>
+            `;
+            resultsContainer.appendChild(entry);
+        });
+    }
+    document.getElementById('search-input').addEventListener('keypress', function(event) {
+    // Check if the 'Enter' key has been pressed
+    if (event.key == 'Enter') {
+        // Prevent the default action to stop the form from being submitted
+        event.preventDefault();
+        // Call the search function
+        search();
+    }
+});
+</script>
+</body>
+</html>
