@@ -1,0 +1,3 @@
+pyncm_async
+uvicorn
+fastapi
